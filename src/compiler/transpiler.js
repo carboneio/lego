@@ -50,6 +50,7 @@ function generateFileContent({ dom, config, version }) {
       this.useShadowDOM = ${ Boolean(config.useShadowDOM) }
       if(typeof state === 'object') this.__state = Object.assign({}, state, this.__state)
       if(typeof connected === 'function') this.connected = connected
+      if(typeof disconnected === 'function') this.disconnected = disconnected
       if(typeof setup === 'function') setup.bind(this)()
     }
     get vdom() { return __template }

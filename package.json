@@ -1,6 +1,6 @@
 {
-  "name": "@polight/lego",
-  "version": "2.0.0-beta.1000",
+  "name": "lego",
+  "version": "2.0.0-beta.1002",
   "description": "Low-Tech & Future-Proof Web-Components library",
   "main": "index.js",
   "type": "module",

@@ -665,7 +665,9 @@ class Component extends HTMLElement {
   get vstyle() { return ({ state }) => '' }
 
   setAttribute(name, value) {
-    super.setAttribute(name, value);
+    if (typeof(value) === 'string') {
+      super.setAttribute(name, value);
+    }
     const prop = toCamelCase(name);
     if(this.watchProps.includes(prop)) this.render({ [prop]: value });
   }
@@ -677,6 +679,11 @@ class Component extends HTMLElement {
       this.render({ [prop]: null });
       delete this.state[prop];
     }
+  }
+
+  debounce(func, timeout = 300, ...args){
+    clearTimeout(func.debounceTimer);
+    func.debounceTimer = setTimeout(() => { func.apply(this, args); }, timeout);
   }
 
   async connectedCallback() {

@@ -29,7 +29,8 @@ function extractDirectives(node) {
     }
     else if(name.startsWith('@')) {
       name = `on${name.slice(1)}`
-      const func = `this.${value}.bind(this)`
+      const func = `(typeof ${value} === 'function' ? ${value}.bind(this) : this.${value}).bind(this)`
+      //TODO understand const func = `this.${value}.bind(this)`
       attrs.push({ name, value: func })
     }
     else attrs.push({ name, value: `\`${value}\`` })

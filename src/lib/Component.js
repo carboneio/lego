@@ -21,6 +21,7 @@ export default class extends HTMLElement {
     this.useShadowDOM = true
     this.__isConnected = false
     this.__state = {}
+    this.__stores = [] // keep track of store to unsubscribe automatically
     if(this.init) this.init()
     this.watchProps = Object.keys(this.__state)
     this.__attributesToState()
@@ -73,6 +74,7 @@ export default class extends HTMLElement {
   disconnectedCallback() {
     this.__isConnected = false
     this.setState({})
+    this.__stores.forEach(store => store.unsubscribe(this));
     if(this.disconnected) this.disconnected()
   }
 

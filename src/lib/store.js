@@ -9,6 +9,18 @@ class Store {
     const selectedProps = Array.isArray(props) ? props : Object.keys(props)
     subscriber.setState(this.getSelectedState(selectedProps))
     this.subscribers.push({ target: subscriber, props: selectedProps })
+    subscriber.__stores.push(this);
+  }
+  
+  unsubscribe (subscriber) {
+    const activeSubscribers = [];
+    for (let i = 0; i < this.subscribers.length; i++) {
+      const sub = this.subscribers[i];
+      if (sub.target !== subscriber) {
+        activeSubscribers.push(sub);
+      }
+    }
+    this.subscribers = activeSubscribers;
   }
 
   get state() {

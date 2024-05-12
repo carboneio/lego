@@ -40,7 +40,9 @@ export default class extends HTMLElement {
   get vstyle() { return ({ state }) => '' }
 
   setAttribute(name, value) {
-    if (typeof(value) === 'string') {
+    if (name.indexOf('-') === -1) {
+      // call default setAttribute only for standard HTML attributes
+      // For example, we can exchange big JSON string between components without printing it in the DOM
       super.setAttribute(name, value)
     }
     const prop = toCamelCase(name)

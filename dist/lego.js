@@ -632,12 +632,17 @@ function render(vnode, parentDomNode, options = {}) {
   }
 }
 
+const _toCamelCaseCache = {};
 function toCamelCase(name) {
+  if (_toCamelCaseCache[name] !== undefined) {
+    return _toCamelCaseCache[name]
+  }
   if(name.includes('-')) {
     const parts = name.split('-');
-    name = parts[0] + parts.splice(1).map(s => s[0].toUpperCase() + s.substr(1)).join('');
+    _toCamelCaseCache[name] = parts[0] + parts.splice(1).map(s => s[0].toUpperCase() + s.substr(1)).join('');
+    return _toCamelCaseCache[name]
   }
-  return name
+  return name;
 }
 
 
@@ -647,10 +652,12 @@ class Component extends HTMLElement {
     this.useShadowDOM = true;
     this.__isConnected = false;
     this.__state = {};
+    this.__stores = []; // keep track of store to unsubscribe automatically
     if(this.init) this.init();
     this.watchProps = Object.keys(this.__state);
     this.__attributesToState();
     this.document = this.useShadowDOM ? this.attachShadow({mode: 'open'}) : this;
+    this.__debounceRender = null;
     if(this.afterInit) this.afterInit();
   }
 
@@ -665,7 +672,9 @@ class Component extends HTMLElement {
   get vstyle() { return ({ state }) => '' }
 
   setAttribute(name, value) {
-    if (typeof(value) === 'string') {
+    if (name.indexOf('-') === -1) {
+      // call default setAttribute only for standard HTML attributes
+      // For example, we can exchange big JSON string between components without printing it in the DOM
       super.setAttribute(name, value);
     }
     const prop = toCamelCase(name);
@@ -688,7 +697,7 @@ class Component extends HTMLElement {
 
   async connectedCallback() {
     this.__isConnected = true;
-    this.render();
+    this.render({}, false);
     // First rendering of the component
     if(this.connected) this.connected();
   }
@@ -696,6 +705,7 @@ class Component extends HTMLElement {
   disconnectedCallback() {
     this.__isConnected = false;
     this.setState({});
+    this.__stores.forEach(store => store.unsubscribe(this));
     if(this.disconnected) this.disconnected();
   }
 
@@ -713,9 +723,19 @@ class Component extends HTMLElement {
     return this.__state
   }
 
-  render(state) {
+  render(state, debounce = true) {
     this.setState(state);
     if(!this.__isConnected) return
+    if (debounce === false) return this.renderDebounce();
+    clearTimeout(this.__debounceRender);
+    // debounce to avoid 3 call when the parent component pass 3 attributes to a child component. 
+    // In that case, this.setAttribute is called 3 times by petit dom when re-creating the dom
+    this.__debounceRender = setTimeout(() => {
+      this.renderDebounce();
+    }, 0);
+  }
+
+  renderDebounce() {
     return render([
       this.vdom({ state: this.__state }),
       this.vstyle({ state: this.__state }),

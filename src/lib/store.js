@@ -1,7 +1,6 @@
 class Store {
-  constructor(state = {}, actions = {}) {
+  constructor(state = {}) {
     this.__state = state
-    this.actions = actions
     this.subscribers = []
   }
 
@@ -72,12 +71,7 @@ class Store {
       }
     })
   }
-
-  dispatch(actionName, ...payload) {
-    const action = this.actions[actionName]
-    if (action) action.bind(this)(...payload)
-    else throw new Error(`action "${actionName}" does not exist`)
-  }
+  
 }
 
 export default Store

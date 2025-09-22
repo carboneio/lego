@@ -5,7 +5,8 @@ class Store {
   }
 
   subscribe(subscriber, props = []) {
-    const selectedProps = Array.isArray(props) ? props : Object.keys(props)
+    const selectedProps = Array.isArray(props) ? props.reduce((obj, val) => { obj[val] = val; return obj; }, {}) : props;
+    // selectedProps = { storeProp1 : subscriberProp1, storeProp2 : subscriberProp2, ... }
     subscriber.setState(this.getSelectedState(selectedProps))
     this.subscribers.push({ target: subscriber, props: selectedProps })
     subscriber.__stores.push(this);
@@ -32,21 +33,23 @@ class Store {
   }
 
   getSelectedState(selectedProps) {
-    return selectedProps.reduce((selectedState, prop) => {
-      if (prop in this.state) {
-        selectedState[prop] = this.state[prop]
+    const selectedState = {}
+    for (let _storeProp in selectedProps) {
+      let _subscriberProp = selectedProps[_storeProp];
+      if (_storeProp in this.state) {
+        selectedState[_subscriberProp] = this.state[_storeProp]
       }
-      return selectedState
-    }, {})
+    }
+    return selectedState;
   }
 
   updateSelectedState(updatedProps, subscribedProps) {
     const _selectedState = {};
     let _atLeastOneUpdate = 0;
-    for (var i = 0; i < subscribedProps.length; i++) {
-      const _prop = subscribedProps[i];
-      if (updatedProps === undefined  || updatedProps[_prop] !== undefined) {
-        _selectedState[_prop] = this.state[_prop];
+    for (let _storeProp in subscribedProps) {
+      let _subscriberProp = subscribedProps[_storeProp];
+      if (updatedProps === undefined  || updatedProps[_storeProp] !== undefined) {
+        _selectedState[_subscriberProp] = this.state[_storeProp];
         _atLeastOneUpdate |= 1;
       }
     }
